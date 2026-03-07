@@ -46,3 +46,6 @@ A powerful analytics suite built in Python that ingests POS data to optimize men
 
 # IMPORTANT !
 ## 🛑 IMPORTANT TESTING NOTE FOR JUDGES: > On the very first run, navigate to the "Voice Copilot" tab and type a test order. The browser will download the compressed AI engine (~350MB) and cache it natively. After this initial load, completely disconnect your Wi-Fi and place another order to verify that the Natural Language Processing runs 100% offline!
+
+## VERY IMPORTANT!
+# RUNNING THE VOICE COPILOT PROCESSING FOR THE FIRST TIME WILL TAKE AROUND 5 MINUTES TO DOWNLOAD THE LOCAL LLM FROM HUGGING FACE WEBSITE AND WILL TAKE AROUND 360 MB OF SPACE AFTERWARDS EVERY PROCESSING WILL BE ALMOST INSTANT AND THE WEBSITE WILL BE READY TO USE
