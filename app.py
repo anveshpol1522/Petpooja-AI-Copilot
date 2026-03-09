@@ -488,7 +488,7 @@ with tabs[0]:
     "recency_days": "Days Since Last Order"
 })
 
-st.dataframe(display_df, use_container_width=True, hide_index=True)
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 with tabs[1]:
     st.subheader("🍽 Menu Engineering Matrix")
@@ -533,7 +533,7 @@ with tabs[1]:
         "quantity",
         "matrix_category",
         "recommended_action"
-]].copy()
+    ]].copy()
 
     display_matrix.columns = [
         "Item ID",
@@ -546,7 +546,7 @@ with tabs[1]:
         "Units Sold",
         "Menu Category",
         "Recommended Action"
-]
+    ]
 
     st.dataframe(display_matrix, use_container_width=True, hide_index=True)
 
@@ -604,8 +604,6 @@ with tabs[2]:
     }
 
     customer_display = customer_display.rename(columns=rename_map)
-
-    st.dataframe(customer_display, use_container_width=True, hide_index=True)
 
     st.dataframe(customer_display, use_container_width=True, hide_index=True)
 
@@ -694,7 +692,7 @@ with tabs[4]:
         "margin",
         "margin_pct",
         "quantity"
-]].head(20).copy()
+    ]].head(20).copy()
 
     upsell_display.columns = [
         "Item ID",
@@ -705,7 +703,7 @@ with tabs[4]:
         "Profit per Item (₹)",
         "Profit Margin %",
         "Units Sold"
-]
+    ]
 
     st.dataframe(upsell_display, use_container_width=True, hide_index=True)
 
@@ -793,7 +791,7 @@ with tabs[5]:
             "recommended_combo_price",
             "estimated_combo_margin",
             "owner_note"
-]].copy()
+        ]].copy()
 
         display_df.columns = [
             "Item 1",
@@ -804,7 +802,7 @@ with tabs[5]:
             "Suggested Combo Price (₹)",
             "Estimated Combo Profit (₹)",
             "Recommendation"
-]
+        ]
 
         st.dataframe(display_df.head(15), use_container_width=True, hide_index=True)
         fig = px.bar(combo_df.head(10), x="item1_name", y="avg_margin_per_order", color="item2_name", title="Top historical combos")
@@ -836,100 +834,98 @@ with tabs[5]:
         else:
             st.info("Not enough menu data to generate combos.")
 
-    with tabs[6]:
-        st.subheader("💰 Price Simulator")
+with tabs[6]:
+    st.subheader("💰 Price Simulator")
 
-        df = build_menu_engineering(menu_f, sales_f)
-        if df.empty:
-            st.info("Upload menu and sales data or widen filters to enable the simulator.")
-        else:
-            item = st.selectbox("Select Menu Item", df.item_name.tolist())
-            row = df[df.item_name == item].iloc[0]
-            cost = float(row.get("food_cost", 0) or 0)
-            current = float(row.get("selling_price", 0) or 0)
-            qty = int(row.get("quantity", 0) or 0)
+    df = build_menu_engineering(menu_f, sales_f)
+    if df.empty:
+        st.info("Upload menu and sales data or widen filters to enable the simulator.")
+    else:
+        item = st.selectbox("Select Menu Item", df.item_name.tolist())
+        row = df[df.item_name == item].iloc[0]
+        cost = float(row.get("food_cost", 0) or 0)
+        current = float(row.get("selling_price", 0) or 0)
+        qty = int(row.get("quantity", 0) or 0)
 
-            new_price = st.slider("Simulated Price", int(max(0, cost)), int(max(current * 2, cost + 1)), int(current))
+        new_price = st.slider("Simulated Price", int(max(0, cost)), int(max(current * 2, cost + 1)), int(current))
 
-            elasticity = 1 - (new_price - current) / (current * 1.5) if current != 0 else 1.0
-            elasticity = max(0.4, elasticity)
+        elasticity = 1 - (new_price - current) / (current * 1.5) if current != 0 else 1.0
+        elasticity = max(0.4, elasticity)
 
-            predicted_qty = int(qty * elasticity)
+        predicted_qty = int(qty * elasticity)
 
-            new_profit = (new_price - cost) * predicted_qty
-            st.metric("Projected Profit", f"₹{new_profit:,.0f}")
+        new_profit = (new_price - cost) * predicted_qty
+        st.metric("Projected Profit", f"₹{new_profit:,.0f}")
 
-    with tabs[7]:
-        st.subheader("ML Demand Forecast")
+with tabs[7]:
+    st.subheader("ML Demand Forecast")
 
-        df = build_menu_engineering(menu_f, sales_f)
-        if df.empty:
-            st.info("Upload menu and sales data to run demand forecast.")
-        else:
-            X = df[["selling_price", "margin_pct"]].fillna(0)
-            y = df["quantity"].fillna(0)
-            try:
-                model = LinearRegression()
-                model.fit(X, y)
-                df["Predicted Monthly Demand"] = model.predict(X).astype(int)
+    df = build_menu_engineering(menu_f, sales_f)
+    if df.empty:
+        st.info("Upload menu and sales data to run demand forecast.")
+    else:
+        X = df[["selling_price", "margin_pct"]].fillna(0)
+        y = df["quantity"].fillna(0)
+        try:
+            model = LinearRegression()
+            model.fit(X, y)
+            df["Predicted Monthly Demand"] = model.predict(X).astype(int)
 
-                display = df[["item_name", "selling_price", "margin_pct", "Predicted Monthly Demand"]].copy()
-                display.columns = ["Menu Item", "Selling Price", "Profit Margin %", "Predicted Demand"]
-                st.dataframe(display)
-                fig = px.bar(display.sort_values("Predicted Demand", ascending=False).head(10), x="Menu Item", y="Predicted Demand")
-                st.plotly_chart(fig, use_container_width=True)
-            except Exception as e:
-                st.error(f"Forecast failed: {e}")
+            display = df[["item_name", "selling_price", "margin_pct", "Predicted Monthly Demand"]].copy()
+            display.columns = ["Menu Item", "Selling Price", "Profit Margin %", "Predicted Demand"]
+            st.dataframe(display)
+            fig = px.bar(display.sort_values("Predicted Demand", ascending=False).head(10), x="Menu Item", y="Predicted Demand")
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"Forecast failed: {e}")
 
-    with tabs[8]:
-        st.subheader("🧠 Menu Optimizer")
+with tabs[8]:
+    st.subheader("🧠 Menu Optimizer")
 
-        df = build_menu_engineering(menu_f, sales_f)
-        if df.empty:
-            st.info("Upload data to see optimizer recommendations.")
-        else:
-            st.subheader("⚠ Items That May Need Removal")
-            remove = df[df["matrix_category"] == "Dog"][["item_name", "selling_price", "margin", "quantity"]].copy()
-            remove.columns = ["Menu Item", "Price", "Profit Per Item", "Units Sold"]
-            remove.columns = [
+    df = build_menu_engineering(menu_f, sales_f)
+    if df.empty:
+        st.info("Upload data to see optimizer recommendations.")
+    else:
+        st.subheader("⚠ Items That May Need Removal")
+        remove = df[df["matrix_category"] == "Dog"][["item_name", "selling_price", "margin", "quantity"]].copy()
+        remove.columns = [
             "Menu Item",
             "Selling Price (₹)",
             "Profit per Item (₹)",
             "Units Sold"
-            ]
+        ]
 
-            st.dataframe(remove, use_container_width=True, hide_index=True)
+        st.dataframe(remove, use_container_width=True, hide_index=True)
 
-            st.subheader("🚀 Items To Promote")
-            promote = df[df["matrix_category"] == "Puzzle"][["item_name", "selling_price", "margin", "quantity"]].copy()
-            promote.columns = ["Menu Item", "Price", "Profit Per Item", "Units Sold"]
-            promote.columns = [
+        st.subheader("🚀 Items To Promote")
+        promote = df[df["matrix_category"] == "Puzzle"][["item_name", "selling_price", "margin", "quantity"]].copy()
+        promote.columns = [
             "Menu Item",
             "Selling Price (₹)",
             "Profit per Item (₹)",
             "Units Sold"
-            ]
+        ]
 
-    st.dataframe(promote, use_container_width=True, hide_index=True)
+        st.dataframe(promote, use_container_width=True, hide_index=True)
 
-    with tabs[9]:
-        st.subheader("🏷 Discount Engine")
+with tabs[9]:
+    st.subheader("🏷 Discount Engine")
 
-        df = build_menu_engineering(menu_f, sales_f)
-        if df.empty:
-            st.info("Upload data to enable discount simulations.")
-        else:
-            item = st.selectbox("Select Item", df.item_name.tolist())
-            row = df[df.item_name == item].iloc[0]
-            price = float(row.get("selling_price", 0) or 0)
-            qty = int(row.get("quantity", 0) or 0)
+    df = build_menu_engineering(menu_f, sales_f)
+    if df.empty:
+        st.info("Upload data to enable discount simulations.")
+    else:
+        item = st.selectbox("Select Item", df.item_name.tolist())
+        row = df[df.item_name == item].iloc[0]
+        price = float(row.get("selling_price", 0) or 0)
+        qty = int(row.get("quantity", 0) or 0)
 
-            discount = st.slider("Discount %", 0, 50, 10)
-            new_price = price * (1 - discount / 100)
-            demand_boost = 1 + (discount / 100) * 1.5
-            new_qty = int(qty * demand_boost)
-            new_revenue = new_price * new_qty
-            old_revenue = price * qty
-            c1, c2 = st.columns(2)
-            c1.metric("Current Revenue", f"₹{old_revenue:,.0f}")
-            c2.metric("Projected Revenue", f"₹{new_revenue:,.0f}")    
+        discount = st.slider("Discount %", 0, 50, 10)
+        new_price = price * (1 - discount / 100)
+        demand_boost = 1 + (discount / 100) * 1.5
+        new_qty = int(qty * demand_boost)
+        new_revenue = new_price * new_qty
+        old_revenue = price * qty
+        c1, c2 = st.columns(2)
+        c1.metric("Current Revenue", f"₹{old_revenue:,.0f}")
+        c2.metric("Projected Revenue", f"₹{new_revenue:,.0f}")
